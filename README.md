@@ -1,2 +1,9 @@
-# cs305_2022
-This repository is for all the assignment related work for the course CS305 (Software Engineering). Each assignment has a separate branch.
+# SQL library
+
+> Submitter name: Tanuj Maheshwari
+
+> Roll No.: 2019CSB1125
+
+> Course: CS305 (Software Engineering)
+
+Java based library for executing SQL queries for CRUD operations against an RDBMS.
