@@ -25,6 +25,9 @@ dependencies {
 
     // This dependency is used internally, and not exposed to consumers on their own compile classpath.
     implementation("com.google.guava:guava:30.1.1-jre")
+
+    //Dependency for XML parser
+    //implementation("org.w3c:dom:2.3.0-jaxb-1.0.6")
 }
 
 tasks.named<Test>("test") {
