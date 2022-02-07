@@ -28,6 +28,9 @@ dependencies {
 
     //Dependency for XML parser
     //implementation("org.w3c:dom:2.3.0-jaxb-1.0.6")
+
+    //Connecting to postgreSQL driver
+    implementation("org.postgresql:postgresql:42.2.10")
 }
 
 tasks.named<Test>("test") {

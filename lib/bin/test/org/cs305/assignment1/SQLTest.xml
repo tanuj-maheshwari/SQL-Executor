@@ -1,0 +1,12 @@
+<queries>
+    <sql id="test" paramType="ArrayList">
+     <![CDATA[
+     SELECT * FROM course WHERE courseid IN ${value};
+     ]]>
+    </sql>
+    <sql id="addMovie" paramType="org.foo.Bar">
+       <![CDATA[
+       INSERT INTO my_table(x, y, x) VALUES(${propX}, ${propY}, ${propZ});
+       ]]>
+    </sql>
+</queries>
