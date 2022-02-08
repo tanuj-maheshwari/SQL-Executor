@@ -26,10 +26,8 @@ public class SqlExecuterTest {
     void setUp() {
         try {
             //Class.forName("com.mysql.jdbc.Driver");
-            //Class.forName("org.postgresql.Driver");
             dbConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306/sakila","root","root123");
-            //dbConnection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/postgres","postgres","392139");
-            sqlExecuter = new SqlExecuter("C:\\Users\\tanuj\\Desktop\\CS305\\cs305_2022\\lib\\src\\test\\java\\org\\cs305\\assignment1\\SQLTest.xml", dbConnection);
+            sqlExecuter = new SqlExecuter("C:\\Users\\tanuj\\Desktop\\CS305\\cs305_2022\\lib\\src\\test\\resources\\SQLTest.xml", dbConnection);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Test setup failed");
