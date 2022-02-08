@@ -9,6 +9,9 @@
 plugins {
     // Apply the java-library plugin for API and implementation separation.
     `java-library`
+
+    //For code coverage
+    jacoco
 }
 
 repositories {
@@ -31,6 +34,10 @@ dependencies {
 
     //Connecting to postgreSQL driver
     implementation("org.postgresql:postgresql:42.2.10")
+
+    //Connecting to MySQL driver
+    // https://mvnrepository.com/artifact/mysql/mysql-connector-java
+    implementation("mysql:mysql-connector-java:8.0.28")
 }
 
 tasks.named<Test>("test") {

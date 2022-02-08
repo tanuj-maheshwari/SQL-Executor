@@ -6,6 +6,7 @@ public interface QueryPopulator {
     * @param rawQuery raw SQL query
     * @param queryParam Parameter(s) to be used in the query.
     * @return The populated SQL query
+     * @throws Exception
     */
     <P> String populateRawQuery(String rawQuery, P queryParam);
 }

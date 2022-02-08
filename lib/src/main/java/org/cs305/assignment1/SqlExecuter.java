@@ -4,9 +4,11 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import org.w3c.dom.*;
+
 import javax.xml.parsers.*;
 import java.io.*;
 import java.sql.*;
@@ -20,6 +22,11 @@ public class SqlExecuter implements SqlRunner, XmlParser, QueryPopulator {
     private final String pathToXMLFile;
     private final Connection dbConnection;
 
+    /**
+     * Default consructor
+     * @param pathToXMLFile Absolute path to the XML file
+     * @param dbConnection Database connection object (of type java.sql.Connection.class)
+     */
     public SqlExecuter(String pathToXMLFile, Connection dbConnection) {
         this.pathToXMLFile = pathToXMLFile;
         this.dbConnection = dbConnection;
@@ -46,43 +53,56 @@ public class SqlExecuter implements SqlRunner, XmlParser, QueryPopulator {
     * @param queryId the id of the required query
     * @param queryParam Parameter(s) to be used in the query.
     * @return The raw SQL query
+     * @throws Exception
     */
     public <P> String getRawQueryFromXML(String queryId, P queryParam) {
+        //get XML file as a document
+        File xmlFile = new File(pathToXMLFile);
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder dbBuilder;
         try {
-            //get XML file as a document
-            File xmlFile = new File(pathToXMLFile);
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder dbBuilder = dbFactory.newDocumentBuilder();
-            Document doc = dbBuilder.parse(xmlFile);
-            doc.getDocumentElement().normalize();
-
-            //get the Query with queryID
-            String rawQuery = "";
-            NodeList nList = doc.getElementsByTagName("sql");
-            for(int i=0; i<nList.getLength(); i++) {
-                Element sqlElement = (Element) nList.item(i);
-                if(queryId.equals(sqlElement.getAttribute("id"))) {
-                    //paramType in XML should match with object type passed
-                    if(sqlElement.getAttribute("paramType").equals(queryParam.getClass().getSimpleName())) {
+            dbBuilder = dbFactory.newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+            return null;
+        }
+        Document doc;
+        try {
+            doc = dbBuilder.parse(xmlFile);
+        } catch (Exception e) {
+            return null;
+        }
+        doc.getDocumentElement().normalize();
+        //get the Query with queryID
+        String rawQuery = "";
+        NodeList nList = doc.getElementsByTagName("sql");
+        for(int i=0; i<nList.getLength(); i++) {
+            Element sqlElement = (Element) nList.item(i);
+            if(queryId.equals(sqlElement.getAttribute("id"))) {
+                //paramType in XML should match with object type passed
+                //if queryParam is null, paramType must also be null
+                if(queryParam == null) {
+                    if (sqlElement.getAttribute("paramType").equals("null")) {
                         rawQuery = sqlElement.getTextContent().trim();
                         break;
                     }
                     else {
-                        throw new ClassCastException("Parameter object type mismatch, classes " + sqlElement.getAttribute("paramType") + " and " + queryParam.getClass().getSimpleName());
+                        throw new RuntimeException("Null argument");
                     }
                 }
+                //if queryParam is not null, the classes must match
+                else if(sqlElement.getAttribute("paramType").equals(queryParam.getClass().getName())) {
+                    rawQuery = sqlElement.getTextContent().trim();
+                    break;
+                } else {
+                    throw new RuntimeException("Parameter object type mismatch, classes " + sqlElement.getAttribute("paramType") + " and " + queryParam.getClass().getName());
+                }
             }
-            //query shouldn't be empty
-            if(rawQuery.equals("")) {
-                throw new Exception("No query with id = " + queryId + " found");
-            }
-
-            return rawQuery;
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(0);
-            return null; //to remove comiler errors
         }
+        //query shouldn't be empty
+        if(rawQuery.equals("")) {
+            throw new RuntimeException("No query with id = " + queryId + " found");
+        }
+        return rawQuery;
     }
 
     /**
@@ -91,77 +111,71 @@ public class SqlExecuter implements SqlRunner, XmlParser, QueryPopulator {
     * @return object array
     */
     private static <P> Object[] getObjectArrayFromPrimitiveArrayObject(P queryParam) {
-        try {
-            if(queryParam.getClass().getComponentType() == int.class) {
-                int[] queryParamArray = (int[]) queryParam;
-                Object[] objectArray = new Object[queryParamArray.length];
-                for(int i=0; i<queryParamArray.length; i++) {
-                    objectArray[i] = (Object) queryParamArray[i];
-                }
-                return objectArray;
+        if(queryParam.getClass().getComponentType() == int.class) {
+            int[] queryParamArray = (int[]) queryParam;
+            Object[] objectArray = new Object[queryParamArray.length];
+            for(int i=0; i<queryParamArray.length; i++) {
+                objectArray[i] = (Object) queryParamArray[i];
             }
-            else if(queryParam.getClass().getComponentType() == byte.class) {
-                byte[] queryParamArray = (byte[]) queryParam;
-                Object[] objectArray = new Object[queryParamArray.length];
-                for(int i=0; i<queryParamArray.length; i++) {
-                    objectArray[i] = (Object) queryParamArray[i];
-                }
-                return objectArray;
+            return objectArray;
+        }
+        else if(queryParam.getClass().getComponentType() == byte.class) {
+            byte[] queryParamArray = (byte[]) queryParam;
+            Object[] objectArray = new Object[queryParamArray.length];
+            for(int i=0; i<queryParamArray.length; i++) {
+                objectArray[i] = (Object) queryParamArray[i];
             }
-            else if(queryParam.getClass().getComponentType() == short.class) {
-                short[] queryParamArray = (short[]) queryParam;
-                Object[] objectArray = new Object[queryParamArray.length];
-                for(int i=0; i<queryParamArray.length; i++) {
-                    objectArray[i] = (Object) queryParamArray[i];
-                }
-                return objectArray;
+            return objectArray;
+        }
+        else if(queryParam.getClass().getComponentType() == short.class) {
+            short[] queryParamArray = (short[]) queryParam;
+            Object[] objectArray = new Object[queryParamArray.length];
+            for(int i=0; i<queryParamArray.length; i++) {
+                objectArray[i] = (Object) queryParamArray[i];
             }
-            else if(queryParam.getClass().getComponentType() == long.class) {
-                long[] queryParamArray = (long[]) queryParam;
-                Object[] objectArray = new Object[queryParamArray.length];
-                for(int i=0; i<queryParamArray.length; i++) {
-                    objectArray[i] = (Object) queryParamArray[i];
-                }
-                return objectArray;
+            return objectArray;
+        }
+        else if(queryParam.getClass().getComponentType() == long.class) {
+            long[] queryParamArray = (long[]) queryParam;
+            Object[] objectArray = new Object[queryParamArray.length];
+            for(int i=0; i<queryParamArray.length; i++) {
+                objectArray[i] = (Object) queryParamArray[i];
             }
-            else if(queryParam.getClass().getComponentType() == float.class) {
-                float[] queryParamArray = (float[]) queryParam;
-                Object[] objectArray = new Object[queryParamArray.length];
-                for(int i=0; i<queryParamArray.length; i++) {
-                    objectArray[i] = (Object) queryParamArray[i];
-                }
-                return objectArray;
+            return objectArray;
+        }
+        else if(queryParam.getClass().getComponentType() == float.class) {
+            float[] queryParamArray = (float[]) queryParam;
+            Object[] objectArray = new Object[queryParamArray.length];
+            for(int i=0; i<queryParamArray.length; i++) {
+                objectArray[i] = (Object) queryParamArray[i];
             }
-            else if(queryParam.getClass().getComponentType() == double.class) {
-                double[] queryParamArray = (double[]) queryParam;
-                Object[] objectArray = new Object[queryParamArray.length];
-                for(int i=0; i<queryParamArray.length; i++) {
-                    objectArray[i] = (Object) queryParamArray[i];
-                }
-                return objectArray;
+            return objectArray;
+        }
+        else if(queryParam.getClass().getComponentType() == double.class) {
+            double[] queryParamArray = (double[]) queryParam;
+            Object[] objectArray = new Object[queryParamArray.length];
+            for(int i=0; i<queryParamArray.length; i++) {
+                objectArray[i] = (Object) queryParamArray[i];
             }
-            else if(queryParam.getClass().getComponentType() == boolean.class) {
-                boolean[] queryParamArray = (boolean[]) queryParam;
-                Object[] objectArray = new Object[queryParamArray.length];
-                for(int i=0; i<queryParamArray.length; i++) {
-                    objectArray[i] = (Object) queryParamArray[i];
-                }
-                return objectArray;
+            return objectArray;
+        }
+        else if(queryParam.getClass().getComponentType() == boolean.class) {
+            boolean[] queryParamArray = (boolean[]) queryParam;
+            Object[] objectArray = new Object[queryParamArray.length];
+            for(int i=0; i<queryParamArray.length; i++) {
+                objectArray[i] = (Object) queryParamArray[i];
             }
-            else if(queryParam.getClass().getComponentType() == char.class) {
-                char[] queryParamArray = (char[]) queryParam;
-                Object[] objectArray = new Object[queryParamArray.length];
-                for(int i=0; i<queryParamArray.length; i++) {
-                    objectArray[i] = (Object) queryParamArray[i];
-                }
-                return objectArray;
+            return objectArray;
+        }
+        else if(queryParam.getClass().getComponentType() == char.class) {
+            char[] queryParamArray = (char[]) queryParam;
+            Object[] objectArray = new Object[queryParamArray.length];
+            for(int i=0; i<queryParamArray.length; i++) {
+                objectArray[i] = (Object) queryParamArray[i];
             }
-            else {
-                throw new ClassCastException("Class type not supported.");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(0);
+            return objectArray;
+        }
+        else {
             return null;
         }
     }
@@ -169,59 +183,51 @@ public class SqlExecuter implements SqlRunner, XmlParser, QueryPopulator {
     /**
     * Gets the value of the queryParam to be used in the query. 
     * Returns string to replace the respective ${prop} in query parsed from XML. 
-    * Accepts primitive(& wrapper), string, and array of these two types.
+    * Accepts primitive(& wrapper), date, string, and array of these types.
     * @param queryParam Parameter(s) to be used in the query.
     * @return The raw SQL query
+     * @throws Exception
     */
     private static <P> String getValueForPropertyPlaceholders(P queryParam) {
-        try {
-            String toBeReplacedBy = new String("");
-            if(isWrapperType(queryParam.getClass())) {
-                //primitive type wrappers
-                toBeReplacedBy = queryParam.toString().trim();
-            }
-            else if(queryParam.getClass() == "String".getClass()) {
-                //string type
-                toBeReplacedBy = new String("\'" + queryParam.toString().trim() + "\'");
-            }
-            else if(queryParam.getClass().isArray()) {
-                //array
-                Object[] queryParamObjects;
-
-                //convert to object array
-                if(queryParam.getClass().getComponentType().isPrimitive()) {
-                    queryParamObjects = getObjectArrayFromPrimitiveArrayObject(queryParam);
-                }
-                else {
-                    queryParamObjects = (Object[]) queryParam;
-                }
-
-                toBeReplacedBy = toBeReplacedBy + "(";
-                //Object[] queryParamObjects = Arrays.stream(queryParam).boxed().toArray(Object[]::new);
-                for(int i=0; i<queryParamObjects.length; i++) {
-                    String eachValue = new String("");
-                    eachValue = queryParamObjects[i].toString();
-                    //add "" if object is of type string
-                    if(queryParamObjects.getClass().getComponentType() == "String".getClass()) {
-                        eachValue = "\'" + eachValue + "\'";
-                    }
-                    toBeReplacedBy = toBeReplacedBy + eachValue;
-                    //add , in between if not the last object
-                    if(i < queryParamObjects.length-1) {
-                        toBeReplacedBy = toBeReplacedBy + ", ";
-                    } 
-                }
-                toBeReplacedBy = toBeReplacedBy + ")";
+        String toBeReplacedBy = new String("");
+        if(isWrapperType(queryParam.getClass()) || queryParam.getClass() == Date.class) {
+            //primitive type wrappers
+            toBeReplacedBy = queryParam.toString().trim();
+        }
+        else if(queryParam.getClass() == String.class) {
+            //string type
+            toBeReplacedBy = new String("\'" + queryParam.toString().trim() + "\'");
+        }
+        else if(queryParam.getClass().isArray()) {
+            //array
+            Object[] queryParamObjects;
+            //convert to object array
+            if(queryParam.getClass().getComponentType().isPrimitive()) {
+                queryParamObjects = getObjectArrayFromPrimitiveArrayObject(queryParam);
             }
             else {
-                throw new Exception("Parameter fields must be primitive(wrapper), string, array/collection type only.");
+                queryParamObjects = (Object[]) queryParam;
             }
-            return toBeReplacedBy;
-        } catch(Exception e) {
-            e.printStackTrace();
-            System.exit(0);
-            return null;
+            toBeReplacedBy = toBeReplacedBy + "(";
+            for(int i=0; i<queryParamObjects.length; i++) {
+                String eachValue = new String("");
+                eachValue = queryParamObjects[i].toString();
+                //add "" if object is of type string
+                if(queryParamObjects.getClass().getComponentType() == String.class) {
+                    eachValue = "\'" + eachValue + "\'";
+                }
+                toBeReplacedBy = toBeReplacedBy + eachValue;
+                //add , in between if not the last object
+                if(i < queryParamObjects.length-1) {
+                    toBeReplacedBy = toBeReplacedBy + ", ";
+                } 
+            }
+            toBeReplacedBy = toBeReplacedBy + ")";
         }
+        else {
+            throw new RuntimeException("Parameter fields must be primitive(wrapper), string, array/collection type only.");
+        }
+        return toBeReplacedBy;
     }
 
     /**
@@ -229,81 +235,73 @@ public class SqlExecuter implements SqlRunner, XmlParser, QueryPopulator {
     * @param rawQuery raw SQL query
     * @param queryParam Parameter(s) to be used in the query.
     * @return The populated SQL query
+     * @throws Exception
     */
     public <P> String populateRawQuery(String rawQuery, P queryParam) {
-        try {
-            String populatedQuery = new String("");
-
-            Field[] paramFields = queryParam.getClass().getDeclaredFields();
-
-            if(isWrapperType(queryParam.getClass())) {
-                //primitive type wrappers
-                populatedQuery = rawQuery.replace("${value}", getValueForPropertyPlaceholders(queryParam));
-            }
-            else if(queryParam.getClass() == "String".getClass()) {
-                //string type
-                populatedQuery = rawQuery.replace("${value}", getValueForPropertyPlaceholders(queryParam));
-            }
-            else if(queryParam.getClass().isArray()) {
-                //array type
-                populatedQuery = rawQuery.replace("${value}", getValueForPropertyPlaceholders(queryParam));
-            }
-            else if(queryParam instanceof Collection) {
-                //collection type
-                //convert to object array and then use getValueForPropertyPlaceholders method
-                Collection<?> queryParamCollection = (Collection<?>) queryParam; 
-                Object[] queryParamObjects = queryParamCollection.toArray();
-                populatedQuery = rawQuery.replace("${value}", getValueForPropertyPlaceholders(queryParamObjects));
-            }
-            else {
-                //generic class type
-                while (rawQuery.indexOf("${") != -1) {
-                    int start = rawQuery.indexOf("${");
-                    int end = rawQuery.indexOf("}");
-                    String propName = rawQuery.substring(start+2, end);
-                    String propValue = "";
-                    for(int i=0; i<paramFields.length; i++) {
-                        if(propName.equals(paramFields[i].getName())) {
-                            Object propObject = paramFields[i].get(queryParam);
-                            //propValue = paramFields[i].get(queryParam).toString().trim();
-                            ////if the field is of type string
-                            //if(paramFields[i].getType() == "String".getClass()) {
-                            //    propValue = "\'" + propValue + "\'";
-                            //}
-                            propValue = getValueForPropertyPlaceholders(propObject);
-                            break;
-                        }
-                    }
-                    //if such property doesn't exist
-                    if(propValue.equals("")) {
-                        throw new NoSuchFieldException("No field " + propName + " for class " + queryParam.getClass().getName() + " found");
-                    }
-                    rawQuery = rawQuery.substring(0, start) + propValue + rawQuery.substring(end+1);
-                }
-                populatedQuery = rawQuery;
-            }
-            return populatedQuery;
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(0);
-            return null; //to remove comiler errors
+        if(queryParam == null) {
+            //if no parameters for query, return the raw query itself
+            return rawQuery;
         }
+        String populatedQuery = new String("");
+        Field[] paramFields = queryParam.getClass().getDeclaredFields();
+        if(isWrapperType(queryParam.getClass()) //primitive wrappers
+            || queryParam.getClass() == Date.class //date
+            || queryParam.getClass() == String.class //string
+            || queryParam.getClass().isArray()) { //array
+            populatedQuery = rawQuery.replace("${value}", getValueForPropertyPlaceholders(queryParam));
+        }
+        else if(queryParam instanceof Collection) {
+            //collection type
+            //convert to object array and then use getValueForPropertyPlaceholders method
+            Collection<?> queryParamCollection = (Collection<?>) queryParam; 
+            Object[] queryParamObjects = queryParamCollection.toArray();
+            populatedQuery = rawQuery.replace("${value}", getValueForPropertyPlaceholders(queryParamObjects));
+        }
+        else {
+            //generic class type
+            while (rawQuery.indexOf("${") != -1) {
+                int start = rawQuery.indexOf("${");
+                int end = rawQuery.indexOf("}");
+                String propName = rawQuery.substring(start+2, end);
+                String propValue = "";
+                for(int i=0; i<paramFields.length; i++) {
+                    if(propName.equals(paramFields[i].getName())) {
+                        Object propObject = new Object();
+                        try {
+                            propObject = paramFields[i].get(queryParam);
+                        } catch (Exception e) {}
+                        propValue = getValueForPropertyPlaceholders(propObject);
+                        break;
+                    }
+                }
+                //if such property doesn't exist
+                if(propValue.equals("")) {
+                    throw new RuntimeException("No field " + propName + " for class " + queryParam.getClass().getName() + " found");
+                }
+                rawQuery = rawQuery.substring(0, start) + propValue + rawQuery.substring(end+1);
+            }
+            populatedQuery = rawQuery;
+        }
+        return populatedQuery;
     }
 
     private <P> ResultSet getResultSet(String queryId, P queryParam) {
+        String rawQuery = this.getRawQueryFromXML(queryId, queryParam);
+        String finalQuery = this.populateRawQuery(rawQuery, queryParam);
+        Statement dbStatement;
         try {
-            String rawQuery = this.getRawQueryFromXML(queryId, queryParam);
-            String finalQuery = this.populateRawQuery(rawQuery, queryParam);
-
-            Statement dbStatement = dbConnection.createStatement();
-            
-            ResultSet resultSet = dbStatement.executeQuery(finalQuery);
-            return resultSet;
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(0);
+            dbStatement = dbConnection.createStatement();
+        } catch (SQLException e) {
             return null;
         }
+        
+        ResultSet resultSet;
+        try {
+            resultSet = dbStatement.executeQuery(finalQuery);
+        } catch (SQLException e) {
+            return null;
+        }
+        return resultSet;
     }
 
     /**
@@ -332,7 +330,7 @@ public class SqlExecuter implements SqlRunner, XmlParser, QueryPopulator {
 
             //populate POJO for all columns in select query
             for(int i=1; i<=rsMetaData.getColumnCount(); i++) {
-                String columnName = rsMetaData.getColumnName(i);
+                String columnName = rsMetaData.getColumnLabel(i);
                 if(resultTypeFieldNames.contains(columnName)) {
                     //setter function for field "name" is -> setName
                     String setterMethodName = "set" + columnName.substring(0, 1).toUpperCase() + columnName.substring(1);
@@ -341,22 +339,19 @@ public class SqlExecuter implements SqlRunner, XmlParser, QueryPopulator {
                     for(int j=0; j<resultTypeFields.length; j++) {
                         if(resultTypeFields[j].getName().equals(columnName)) {
                             Method setterMethod = sqlResult.getClass().getDeclaredMethod(setterMethodName, resultTypeFields[j].getType());
-                            //cast the result into the datatype of object's field
-                            //String fieldClassName = resultTypeFields[j].getClass().getName();
-                            //setterMethod.invoke(sqlResult, Class.forName(fieldClassName).cast(resultSet.getObject(columnName)));
                             setterMethod.invoke(sqlResult, resultSet.getObject(columnName));
+                            //resultTypeFields[j].set(sqlResult, resultSet.getObject(columnName));
                         }
                     }
                 }
                 else {
-                    throw new NoSuchFieldException("Field " + rsMetaData.getColumnName(i) + " doesn't exist for class " + resultType.getClass().getName());
+                    throw new RuntimeException("Field " + rsMetaData.getColumnLabel(i) + " doesn't exist for class " + resultType.getClass().getName());
                 }
             }
 
             return sqlResult;
         } catch(Exception e) {
             e.printStackTrace();
-            System.exit(0);
             return null;
         }
     }
@@ -393,7 +388,7 @@ public class SqlExecuter implements SqlRunner, XmlParser, QueryPopulator {
                 R sqlResultItem = resultItemType.getDeclaredConstructor().newInstance();
                 //populate POJO for all columns in select query
                 for(int i=1; i<=rsMetaData.getColumnCount(); i++) {
-                    String columnName = rsMetaData.getColumnName(i);
+                    String columnName = rsMetaData.getColumnLabel(i);
                     if(resultTypeFieldNames.contains(columnName)) {
                         //setter function for field "name" is -> setName
                         String setterMethodName = "set" + columnName.substring(0, 1).toUpperCase() + columnName.substring(1);
@@ -402,15 +397,13 @@ public class SqlExecuter implements SqlRunner, XmlParser, QueryPopulator {
                         for(int j=0; j<resultTypeFields.length; j++) {
                             if(resultTypeFields[j].getName().equals(columnName)) {
                                 Method setterMethod = sqlResultItem.getClass().getMethod(setterMethodName, resultTypeFields[j].getType());
-                                //cast the result into the datatype of object's field
-                                //String fieldClassName = resultTypeFields[j].getClass().getName();
-                                //setterMethod.invoke(sqlResultItem, Class.forName(fieldClassName).cast(resultSet.getObject(columnName)));
                                 setterMethod.invoke(sqlResultItem, resultSet.getObject(columnName));
+                                //resultTypeFields[j].set(sqlResultItem, resultSet.getObject(columnName));
                             }
                         }
                     }
                     else {
-                        throw new NoSuchFieldException("Field " + rsMetaData.getColumnName(i) + " doesn't exist for class " + resultItemType.getClass().getName());
+                        throw new RuntimeException("Field " + rsMetaData.getColumnLabel(i) + " doesn't exist for class " + resultItemType.getClass().getName());
                     }
                 }
 
@@ -421,7 +414,6 @@ public class SqlExecuter implements SqlRunner, XmlParser, QueryPopulator {
             return sqlResultList;
         } catch(Exception e) {
             e.printStackTrace();
-            System.exit(0);
             return null;
         }
     }
@@ -443,8 +435,7 @@ public class SqlExecuter implements SqlRunner, XmlParser, QueryPopulator {
             return numRowsAffected;
         } catch(Exception e) {
             e.printStackTrace();
-            System.exit(0);
-            return 0;
+            return -1;
         }
     }
  
@@ -453,6 +444,7 @@ public class SqlExecuter implements SqlRunner, XmlParser, QueryPopulator {
      * @param queryId
      * @param queryParam
      * @return number of rows affected
+     * @throws Exception
      */
     public <P> int insert(String queryId, P queryParam) {
         try {
@@ -465,8 +457,7 @@ public class SqlExecuter implements SqlRunner, XmlParser, QueryPopulator {
             return numRowsAffected;
         } catch(Exception e) {
             e.printStackTrace();
-            System.exit(0);
-            return 0;
+            return -1;
         }
     }
  
@@ -487,8 +478,7 @@ public class SqlExecuter implements SqlRunner, XmlParser, QueryPopulator {
             return numRowsAffected;
         } catch(Exception e) {
             e.printStackTrace();
-            System.exit(0);
-            return 0;
+            return -1;
         }
     }
 }
