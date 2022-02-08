@@ -57,52 +57,46 @@ public class SqlExecuter implements SqlRunner, XmlParser, QueryPopulator {
     */
     public <P> String getRawQueryFromXML(String queryId, P queryParam) {
         //get XML file as a document
-        File xmlFile = new File(pathToXMLFile);
-        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder dbBuilder;
-        try {
-            dbBuilder = dbFactory.newDocumentBuilder();
-        } catch (ParserConfigurationException e) {
-            return null;
-        }
-        Document doc;
-        try {
-            doc = dbBuilder.parse(xmlFile);
-        } catch (Exception e) {
-            return null;
-        }
-        doc.getDocumentElement().normalize();
-        //get the Query with queryID
-        String rawQuery = "";
-        NodeList nList = doc.getElementsByTagName("sql");
-        for(int i=0; i<nList.getLength(); i++) {
-            Element sqlElement = (Element) nList.item(i);
-            if(queryId.equals(sqlElement.getAttribute("id"))) {
-                //paramType in XML should match with object type passed
-                //if queryParam is null, paramType must also be null
-                if(queryParam == null) {
-                    if (sqlElement.getAttribute("paramType").equals("null")) {
+        try{
+            File xmlFile = new File(pathToXMLFile);
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dbBuilder = dbFactory.newDocumentBuilder();
+            Document doc = dbBuilder.parse(xmlFile);
+            doc.getDocumentElement().normalize();
+            //get the Query with queryID
+            String rawQuery = "";
+            NodeList nList = doc.getElementsByTagName("sql");
+            for(int i=0; i<nList.getLength(); i++) {
+                Element sqlElement = (Element) nList.item(i);
+                if(queryId.equals(sqlElement.getAttribute("id"))) {
+                    //paramType in XML should match with object type passed
+                    //if queryParam is null, paramType must also be null
+                    if(queryParam == null) {
+                        if (sqlElement.getAttribute("paramType").equals("null")) {
+                            rawQuery = sqlElement.getTextContent().trim();
+                            break;
+                        }
+                        else {
+                            throw new RuntimeException("Null argument");
+                        }
+                    }
+                    //if queryParam is not null, the classes must match
+                    else if(sqlElement.getAttribute("paramType").equals(queryParam.getClass().getName())) {
                         rawQuery = sqlElement.getTextContent().trim();
                         break;
+                    } else {
+                        throw new RuntimeException("Parameter object type mismatch, classes " + sqlElement.getAttribute("paramType") + " and " + queryParam.getClass().getName());
                     }
-                    else {
-                        throw new RuntimeException("Null argument");
-                    }
-                }
-                //if queryParam is not null, the classes must match
-                else if(sqlElement.getAttribute("paramType").equals(queryParam.getClass().getName())) {
-                    rawQuery = sqlElement.getTextContent().trim();
-                    break;
-                } else {
-                    throw new RuntimeException("Parameter object type mismatch, classes " + sqlElement.getAttribute("paramType") + " and " + queryParam.getClass().getName());
                 }
             }
+            //query shouldn't be empty
+            if(rawQuery.equals("")) {
+                throw new RuntimeException("No query with id = " + queryId + " found");
+            }
+            return rawQuery;
+        } catch(Exception e) {
+        throw new RuntimeException(e);
         }
-        //query shouldn't be empty
-        if(rawQuery.equals("")) {
-            throw new RuntimeException("No query with id = " + queryId + " found");
-        }
-        return rawQuery;
     }
 
     /**
@@ -167,16 +161,13 @@ public class SqlExecuter implements SqlRunner, XmlParser, QueryPopulator {
             }
             return objectArray;
         }
-        else if(queryParam.getClass().getComponentType() == char.class) {
+        else {
             char[] queryParamArray = (char[]) queryParam;
             Object[] objectArray = new Object[queryParamArray.length];
             for(int i=0; i<queryParamArray.length; i++) {
                 objectArray[i] = (Object) queryParamArray[i];
             }
             return objectArray;
-        }
-        else {
-            return null;
         }
     }
 
@@ -286,22 +277,16 @@ public class SqlExecuter implements SqlRunner, XmlParser, QueryPopulator {
     }
 
     private <P> ResultSet getResultSet(String queryId, P queryParam) {
+        try {
         String rawQuery = this.getRawQueryFromXML(queryId, queryParam);
         String finalQuery = this.populateRawQuery(rawQuery, queryParam);
-        Statement dbStatement;
-        try {
-            dbStatement = dbConnection.createStatement();
-        } catch (SQLException e) {
-            return null;
-        }
+        Statement dbStatement = dbConnection.createStatement();
         
-        ResultSet resultSet;
-        try {
-            resultSet = dbStatement.executeQuery(finalQuery);
-        } catch (SQLException e) {
-            return null;
-        }
+        ResultSet resultSet = dbStatement.executeQuery(finalQuery);
         return resultSet;
+    } catch(Exception e) {
+        throw new RuntimeException(e);
+    }
     }
 
     /**
@@ -351,8 +336,7 @@ public class SqlExecuter implements SqlRunner, XmlParser, QueryPopulator {
 
             return sqlResult;
         } catch(Exception e) {
-            e.printStackTrace();
-            return null;
+            throw new RuntimeException(e);
         }
     }
  
@@ -413,8 +397,7 @@ public class SqlExecuter implements SqlRunner, XmlParser, QueryPopulator {
 
             return sqlResultList;
         } catch(Exception e) {
-            e.printStackTrace();
-            return null;
+            throw new RuntimeException(e);
         }
     }
  
@@ -434,8 +417,7 @@ public class SqlExecuter implements SqlRunner, XmlParser, QueryPopulator {
             int numRowsAffected = dbStatement.executeUpdate(finalQuery);
             return numRowsAffected;
         } catch(Exception e) {
-            e.printStackTrace();
-            return -1;
+            throw new RuntimeException(e);
         }
     }
  
@@ -456,8 +438,7 @@ public class SqlExecuter implements SqlRunner, XmlParser, QueryPopulator {
             int numRowsAffected = dbStatement.executeUpdate(finalQuery);
             return numRowsAffected;
         } catch(Exception e) {
-            e.printStackTrace();
-            return -1;
+            throw new RuntimeException(e);
         }
     }
  
@@ -477,8 +458,7 @@ public class SqlExecuter implements SqlRunner, XmlParser, QueryPopulator {
             int numRowsAffected = dbStatement.executeUpdate(finalQuery);
             return numRowsAffected;
         } catch(Exception e) {
-            e.printStackTrace();
-            return -1;
+            throw new RuntimeException(e);
         }
     }
 }

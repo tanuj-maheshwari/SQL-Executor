@@ -13,6 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -42,12 +43,16 @@ public class SqlExecuterTest {
         assertEquals(0, rowsAffected);
 
         //test ? -> no query id match
-        assertEquals(-1, sqlExecuter.delete("test?", null));
+        assertThrows(RuntimeException.class, () -> {
+            sqlExecuter.delete("test?", null);
+        });
 
         //test 9 -> Class fields must be primitive/string/array/collection
-        SakilaTest1 obj1 = new SakilaTest1("PG", (float)0.99, 5.99, (short)70, 190);
-        SakilaTest9 test9Obj = new SakilaTest9(obj1);
-        assertEquals(-1, sqlExecuter.delete("test9", test9Obj));
+        assertThrows(RuntimeException.class, () -> {
+            SakilaTest1 obj1 = new SakilaTest1("PG", (float)0.99, 5.99, (short)70, 190);
+            SakilaTest9 test9Obj = new SakilaTest9(obj1);
+            sqlExecuter.delete("test9", test9Obj);
+        });
     }
 
     @Test
@@ -58,9 +63,11 @@ public class SqlExecuterTest {
         assertEquals(1, rowsAffected);
 
         //test 10 -> no such field in paramQuery
-        SakilaTest1 obj1 = new SakilaTest1("PG", (float)0.99, 5.99, (short)70, 190);
-        SakilaTest9 test10Obj = new SakilaTest9(obj1);
-        assertEquals(-1, sqlExecuter.insert("test10", test10Obj));
+        assertThrows(RuntimeException.class, () -> {
+            SakilaTest1 obj1 = new SakilaTest1("PG", (float)0.99, 5.99, (short)70, 190);
+            SakilaTest9 test10Obj = new SakilaTest9(obj1);
+            sqlExecuter.insert("test10", test10Obj);
+        });
     }
 
     @Test
@@ -89,8 +96,9 @@ public class SqlExecuterTest {
         assertEquals(null, test4);
 
         //test 11.a -> no such filed in POJO exception
-        List<Film> test11 = sqlExecuter.selectMany("test11", test1Obj, Film.class);
-        assertEquals(null, test11);
+        assertThrows(RuntimeException.class, () -> {
+            sqlExecuter.selectMany("test11", test1Obj, Film.class);
+        });
     }
 
     @Test
@@ -119,9 +127,10 @@ public class SqlExecuterTest {
         assertEquals("PENELOPE", test5.getFirst_name());
 
         //test 11.b -> no such filed in POJO exception
-        SakilaTest1 test11Obj = new SakilaTest1("PG", (float)0.99, 5.99, (short)70, 190);
-        Film test11 = sqlExecuter.selectOne("test11", test11Obj, Film.class);
-        assertEquals(null, test11);
+        assertThrows(RuntimeException.class, () -> {
+            SakilaTest1 test11Obj = new SakilaTest1("PG", (float)0.99, 5.99, (short)70, 190);
+            sqlExecuter.selectOne("test11", test11Obj, Film.class);
+        });
     }
 
     @Test
@@ -132,11 +141,15 @@ public class SqlExecuterTest {
         assertEquals(1, rowsAffected);
 
         //test 8(b) -> null object passed
-        assertEquals(-1, sqlExecuter.update("test8", null));
+        assertThrows(RuntimeException.class, () -> {
+            sqlExecuter.update("test8", null);
+        });
 
         //test 8(c) -> queryParam and paramType mismatch
-        String str = new String("xyz");
-        assertEquals(-1, sqlExecuter.update("test8", str));
+        assertThrows(RuntimeException.class, () -> {
+            String str = new String("xyz");
+            sqlExecuter.update("test8", str);
+        });
     }
 
     @AfterEach
