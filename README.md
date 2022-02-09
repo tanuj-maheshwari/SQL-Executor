@@ -135,7 +135,7 @@ The test report generated is located at lib/build/reports/jacoco/test/html/index
 To build a JAR so that the library could be used in any project, run :-
 
 ```
-./grdlew build
+./gradlew build
 ```
 
 The JAR file built will be located at lib/build/libs/lib.jar
