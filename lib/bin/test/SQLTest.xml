@@ -115,4 +115,11 @@
       AND length BETWEEN ${durationStart} AND ${durationEnd};
       ]]>
     </sql>
+
+    <sql id="test12" paramType="org.cs305.assignment1.classes.SakilaTest12B">
+      <![CDATA[
+      SELECT actor_id, first_name, last_name FROM actor WHERE 
+      last_name IN ${lastnameStringObject};
+      ]]>
+    </sql>
 </queries>

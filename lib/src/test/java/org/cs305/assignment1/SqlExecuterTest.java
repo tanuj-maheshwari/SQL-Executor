@@ -4,6 +4,8 @@ import org.cs305.assignment1.classes.Actor;
 import org.cs305.assignment1.classes.Film;
 import org.cs305.assignment1.classes.SakilaTest0Output;
 import org.cs305.assignment1.classes.SakilaTest1;
+import org.cs305.assignment1.classes.SakilaTest12A;
+import org.cs305.assignment1.classes.SakilaTest12B;
 import org.cs305.assignment1.classes.SakilaTest2;
 import org.cs305.assignment1.classes.SakilaTest3;
 import org.cs305.assignment1.classes.SakilaTest4;
@@ -47,7 +49,7 @@ public class SqlExecuterTest {
             sqlExecuter.delete("test?", null);
         });
 
-        //test 9 -> Class fields must be primitive/string/array/collection
+        //test 9 -> Class fields must be primitive/string/array/collection or must have toString() overridden
         assertThrows(RuntimeException.class, () -> {
             SakilaTest1 obj1 = new SakilaTest1("PG", (float)0.99, 5.99, (short)70, 190);
             SakilaTest9 test9Obj = new SakilaTest9(obj1);
@@ -99,6 +101,12 @@ public class SqlExecuterTest {
         assertThrows(RuntimeException.class, () -> {
             sqlExecuter.selectMany("test11", test1Obj, Film.class);
         });
+
+        //test 12 -> Generic object (with overriden toString() method)
+        SakilaTest12A obj = new SakilaTest12A(lastnameArray);
+        SakilaTest12B test12Obj = new SakilaTest12B(obj);
+        List<Actor> test12 = sqlExecuter.selectMany("test12", test12Obj, Actor.class);
+        assertEquals("GENE", test12.get(2).getFirst_name());
     }
 
     @Test

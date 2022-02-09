@@ -216,7 +216,8 @@ public class SqlExecuter implements SqlRunner, XmlParser, QueryPopulator {
             toBeReplacedBy = toBeReplacedBy + ")";
         }
         else {
-            throw new RuntimeException("Parameter fields must be primitive(wrapper), string, array/collection type only.");
+            //throw new RuntimeException("Parameter fields must be primitive(wrapper), string, array/collection type only.");
+            toBeReplacedBy = queryParam.toString();
         }
         return toBeReplacedBy;
     }
