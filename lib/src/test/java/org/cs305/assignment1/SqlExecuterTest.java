@@ -90,12 +90,12 @@ public class SqlExecuterTest {
         List<Actor> test2 = sqlExecuter.selectMany("test2", test2Obj, Actor.class);
         assertEquals("FAY", test2.get(2).getFirst_name());
 
-        //test 4.1 -> {boolean[], char[]}, returns null
+        //test 4.1 -> {boolean[], char[]}, returns empty list
         boolean[] boolArray = new boolean[]{true, false};
         char[] charArray = new char[]{'a', 'b', 'c'};
         SakilaTest4 test4Obj = new SakilaTest4(boolArray, charArray);
         List<Film> test4 = sqlExecuter.selectMany("test4", test4Obj, Film.class);
-        assertEquals(null, test4);
+        assertEquals(0, test4.size());
 
         //test 11.a -> no such filed in POJO exception
         assertThrows(RuntimeException.class, () -> {
@@ -112,14 +112,15 @@ public class SqlExecuterTest {
     @Test
     void testSelectOne() {
         //test 3 -> {short[], byte[], long[], float[], double[]}
-        short[] idArray = new short[]{(short)275};
-        byte[] idArray2 = new byte[]{(byte)23};
-        long[] idArray3 = new long[]{(long)323};
-        float[] rateStart = new float[]{(float)1.99};
-        double[] rateEnd = new double[]{2.99};
-        SakilaTest3 test3Obj = new SakilaTest3(idArray, idArray2, idArray3, rateStart, rateEnd);
-        Film test3 = sqlExecuter.selectOne("test3", test3Obj, Film.class);
-        assertEquals("ADAPTATION HOLES", test3.getTitle());
+        assertThrows(RuntimeException.class, () -> {
+            short[] idArray = new short[]{(short)275};
+            byte[] idArray2 = new byte[]{(byte)23};
+            long[] idArray3 = new long[]{(long)323};
+            float[] rateStart = new float[]{(float)1.99};
+            double[] rateEnd = new double[]{2.99};
+            SakilaTest3 test3Obj = new SakilaTest3(idArray, idArray2, idArray3, rateStart, rateEnd);
+            sqlExecuter.selectOne("test3", test3Obj, Film.class);
+        });
 
         //test 4.2 -> {boolean[], char[]}, returns null
         boolean[] boolArray = new boolean[]{true, false};
@@ -130,7 +131,7 @@ public class SqlExecuterTest {
 
         //test 5 -> List<Integer>
         List<Integer> actoridList = new ArrayList<>();
-        actoridList.add(1); actoridList.add(2); actoridList.add(3);
+        actoridList.add(1);
         Actor test5 = sqlExecuter.selectOne("test5", actoridList, Actor.class);
         assertEquals("PENELOPE", test5.getFirst_name());
 

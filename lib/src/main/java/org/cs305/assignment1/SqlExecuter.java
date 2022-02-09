@@ -334,6 +334,11 @@ public class SqlExecuter implements SqlRunner, XmlParser, QueryPopulator {
                     throw new RuntimeException("Field " + rsMetaData.getColumnLabel(i) + " doesn't exist for class " + resultType.getClass().getName());
                 }
             }
+            
+            //if more than one record is present
+            if(resultSet.next()) {
+                throw new RuntimeException("More than one rows in SELECT query");
+            }
 
             return sqlResult;
         } catch(Exception e) {
@@ -350,10 +355,13 @@ public class SqlExecuter implements SqlRunner, XmlParser, QueryPopulator {
      */
     public <R, P> List<R> selectMany(String queryId, P queryParam, Class<R> resultItemType) {
         try {
+            //final result list
+            List<R> sqlResultList = new ArrayList<>();
+
             //Get resultSet and the corresponding meta data
             ResultSet resultSet = this.getResultSet(queryId, queryParam);
             if(!resultSet.next()) {
-                return null;
+                return sqlResultList;
             }
             ResultSetMetaData rsMetaData = resultSet.getMetaData();
 
@@ -364,9 +372,6 @@ public class SqlExecuter implements SqlRunner, XmlParser, QueryPopulator {
             for(int a=0; a<resultTypeFields.length; a++) {
                 resultTypeFieldNames.add(resultTypeFields[a].getName());
             }
-
-            //final result list
-            List<R> sqlResultList = new ArrayList<>();
 
             //repeat for all rows in query result
             do {
