@@ -1,9 +1,9 @@
-# SQL library
+# SQL Executor library
 
 > Submitter name: Tanuj Maheshwari
-
+>
 > Roll No.: 2019CSB1125
-
+>
 > Course: CS305 (Software Engineering)
 
 Java based library for executing SQL queries for CRUD operations against an RDBMS.
@@ -22,7 +22,7 @@ The SQL queries to be processed are grabbed from an XML file with a specific for
 
 #### Parsing the XML file
 
-First, the XML file is loaded from the path provided. The desired SQL query is then parsed from the XML file using the unique `id` parameter of each `<sql>` tag. The subsequent query recieved is termed as "raw query".
+First, the XML file is loaded from the path provided. The desired SQL query is then parsed from the XML file using the unique `id` parameter of each `<sql>` tag. The subsequent query received is termed as "raw query".
 
 #### Populating the raw query
 
@@ -30,7 +30,7 @@ Next, the raw query parsed from the XML file is populated (i.e. the `${...}` is 
 
 #### Executing the SQL command
 
-The SQL command then created, refered to as "populated query" is then executed through the database connection object
+The SQL command then created, referred to as "populated query" is then executed through the database connection object
 
 #### Populating the POJO
 
@@ -48,25 +48,25 @@ The library implements 5 functions that can be used to achieve the desired resul
 
 > NOTE - `selectOne()` returns `null` if the query selects 0 records, and throws an exception if the query selects more than one record.
 
-To use these functions, user needs to define an object of class `org.cs305.assignment1.SqlExecuter`, and call these functions accordingly.
+To use these functions, user needs to define an object of class `org.cs305.assignment1.SqlExecutor`, and call these functions accordingly.
 
-The constructor for `SqlExecuter` takes two commands :-
+The constructor for `SqlExecutor` takes two commands :-
 
 1. `pathToXMLFile` is a `String` which contains the **absolute** path to the XML file where SQL commands are stored.
 2. `dbConnection` is a `java.sql.Connection` object which contains the database connection object.
 
 ### Types supported
 
-The following types are supported to be provided as `queryParam`/`paramType` :-
+The following types are supported to be provided as `queryParam`/`paramType`, with their corresponding `${...}` values to be specified in XML:-
 
-1. null
-2. Primitive types & their Wrappers
-3. String
-4. Arrays (of type 2, 3)
-5. Collections (of type 2, 3)
-6. Objects (with fields of type 2 to 5)
-7. Arrays/Collections of objects (with overridden toString() method)
-8. Generic objects (with fields of type 2 to 5, or with overridden toString() methods)
+1. null - ~~${...}~~ (i.e. no ${} should be present in the query)
+2. Primitive types & their Wrappers - ${value}
+3. String - ${value}
+4. Arrays (of type 2, 3) - ${value}
+5. Collections (of type 2, 3) - ${value}
+6. Objects (with fields of type 2 to 5) - ${_field_name_}
+7. Arrays/Collections of objects (with overridden toString() method) - ${value}
+8. Generic objects (with fields of type 2 to 5, or with overridden toString() methods) - ${_field_name_}
 
 For fields 7 and 8, the object types must have overridden toString() methods, like
 
@@ -97,9 +97,9 @@ The program can raise several exceptions, and all will be of the type `java.lang
 
 ### Prerequisites
 
-The library is built in java, using gradle, and hence JDK (or atleast JRE) and gradle must be installed on the system.
+The library is built in java, using gradle, and hence JDK and gradle must be installed on the system.
 
-Also, the built in tests run on the MySQL Sakila database, hence to run those, MySQL is needed and Sakila database must be loaded.
+Also, the built-in tests run on the MySQL Sakila database, hence to run those, MySQL is needed and [Sakila database](https://dev.mysql.com/doc/sakila/en/sakila-installation.html) must be loaded.
 
 ### Clone the repository
 
@@ -112,21 +112,35 @@ git checkout assignment_1
 
 ### To run unit tests
 
-To run unit tests provided within the implementation, run the fllowing command from the project directory (i.e. the directory where the repository is cloned) :-
+To run unit tests provided within the implementation, 
 
-```
-./gradlew test
-```
+1. Open [SqlExecutorTest](./lib/src/test/java/org/cs305/assignment1/SqlExecutorTest.java)
+
+    - Change line 31 as follows :-
+
+          dbConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306/sakila","<root username>","<password>");
+
+        > Change 3306 to MySQL's port number (default is 3306)
+
+    - Remove line 32 if changes are to be committed in the database
+
+    - Change line 33 as follows :-
+
+          sqlExecutor = new SqlExecutor("<Absolute path to XML file>", dbConnection);
+
+2. Run the following command from the project directory (i.e. the directory where the repository is cloned) :-
+
+       ./gradlew test
+
+    > NOTE - If running on Windows, replace ./gradlew with gradlew
+
+### To generate code coverage report using JaCoCo
+
+Detailed code coverage report can be generated using JaCoCo. To generate the report, run :-
+
+    ./gradlew jacocoTestReport
 
 > NOTE - If running on Windows, replace ./gradlew with gradlew
-
-### To generate code coverage report
-
-Code coverage report generation is implemented using JaCoCo. To generate the report, run :-
-
-```
-./gradlew jacocoTestReport
-```
 
 The test report generated is located at lib/build/reports/jacoco/test/html/index.html
 
@@ -134,14 +148,20 @@ The test report generated is located at lib/build/reports/jacoco/test/html/index
 
 To build a JAR so that the library could be used in any project, run :-
 
-```
-./gradlew build
-```
+    ./gradlew build
+
+> NOTE - If running on Windows, replace ./gradlew with gradlew
 
 The JAR file built will be located at lib/build/libs/lib.jar
 
 ## Snapshot of a sample run
 
-The unit tests provided cover 99% percent of the code. Below is a snapshot of the code coverage report generated by jacoco.
+The unit tests provided cover 100% percent of the code. Below is a snapshot of the code coverage report generated by IntelliJ and JaCoCo.
 
-![JaCoCo Snapshot](./report/Coverage.png?raw=true "JaCoCo Snapshot")
+### IntelliJ report
+
+![IntelliJ Snapshot](./coverage_report/IntelliJ_Report.png?raw=true "IntelliJ Snapshot")
+
+### JaCoCo report
+
+![JaCoCo Snapshot](./coverage_report/JaCoCo_Report.png?raw=true "JaCoCo Snapshot")

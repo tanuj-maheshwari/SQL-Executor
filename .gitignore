@@ -7,4 +7,7 @@ build
 # Ignore VSCode settings
 .vscode/
 
+# Ignore IntelliJ Idea settings
+.idea/
+
 .gitattributes
