@@ -13,7 +13,7 @@ Java based library for executing SQL queries for CRUD operations against an RDBM
 
 This is a Java library that can be used for executing basic SQL queries, i.e. `SELECT`, `INSERT`, `DELETE` and `UPDATE` (CRUD operations) against an RDMS such as MySQL, PostgreSQL, etc.
 
-The SQL queries to be processed are grabbed from an XML file with a specific format. The queries can be complete on their own, or could be dynamically populated from user defined parameters at run time. The results from the SQL queries are used to populate plain old java objects (POJOs).
+The SQL queries to be processed are grabbed from an XML file with a specific format, an example of which can be found [here](./lib/src/test/resources/SQLTest.xml). The queries can be complete on their own, or could be dynamically populated from user defined parameters at run time. The results from the SQL queries are used to populate plain old java objects (POJOs).
 
 
 ## A description of how this program works (i.e. its logic)
