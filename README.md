@@ -143,7 +143,7 @@ Detailed code coverage report can be generated using JaCoCo. To generate the rep
 
 > NOTE - If running on Windows, replace ./gradlew with gradlew
 
-The test report generated is located at lib/build/reports/jacoco/test/html/index.html
+The test report generated is located at `lib/build/reports/jacoco/test/html/index.html`
 
 ### To build a JAR
 
@@ -153,7 +153,7 @@ To build a JAR so that the library could be used in any project, run :-
 
 > NOTE - If running on Windows, replace ./gradlew with gradlew
 
-The JAR file built will be located at lib/build/libs/lib.jar
+The JAR file built will be located at `lib/build/libs/lib.jar`
 
 ## Snapshot of a sample run
 
