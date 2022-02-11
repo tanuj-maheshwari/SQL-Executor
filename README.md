@@ -50,6 +50,8 @@ The library implements 5 functions that can be used to achieve the desired resul
 
 > NOTE - `selectOne()` returns `null` if the query selects 0 records, and throws an exception if the query selects more than one record.
 
+> **IMPORTANT - The POJOs to be populated using `selectOne()` and `selectMany()` must have default getters and setters**
+
 To use these functions, user needs to define an object of class `org.cs305.assignment1.SqlExecutor`, and call these functions accordingly.
 
 The constructor for `SqlExecutor` takes two commands :-
