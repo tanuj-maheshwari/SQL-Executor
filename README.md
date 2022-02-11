@@ -61,14 +61,15 @@ The following types are supported to be provided as `queryParam`/`paramType`, wi
 
 1. null - ~~${...}~~ (i.e. no ${} should be present in the query)
 2. Primitive types & their Wrappers - ${value}
-3. String - ${value}
+3. String - ${value} 
 4. Arrays (of type 2, 3) - ${value}
 5. Collections (of type 2, 3) - ${value}
 6. Objects (with fields of type 2 to 5) - ${_field_name_}
-7. Arrays/Collections of objects (with overridden toString() method) - ${value}
-8. Generic objects (with fields of type 2 to 5, or with overridden toString() methods) - ${_field_name_}
+7. Date - ${value}
+8. Arrays/Collections of objects (with overridden toString() method) - ${value}
+9. Generic objects (with fields of type 2 to 5, or with overridden toString() methods) - ${_field_name_}
 
-For fields 7 and 8, the object types must have overridden toString() methods, like
+For fields 7, 8 and 9, the object types must have overridden toString() methods, like
 
 ```
 @Override
