@@ -6,6 +6,8 @@
 >
 > Course: CS305 (Software Engineering)
 
+> GitHub repo - [link](https://github.com/tanuj-maheshwari/cs305_2022/tree/assignment_1)
+
 Java based library for executing SQL queries for CRUD operations against an RDBMS.
 
 
